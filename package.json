@@ -30,7 +30,7 @@
     "log4js": "^6.4.3",
     "moment": "^2.24.0",
     "moment-duration-format": "^2.3.2",
-    "restify": "^8.5.1",
+    "restify": "^11.1.0",
     "stereotype": "^1.0.1"
   },
   "devDependencies": {
