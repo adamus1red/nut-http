@@ -10,23 +10,51 @@ on:
       - "Dockerfile"
       - ".github/workflows/dockerimage.yml"
   workflow_dispatch:
+  pull_request:
+    branches: [ master ] 
 
 jobs:
   dockerhub:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Set vars
-        id: vars
-        run: if [ "${GITHUB_REF#refs/*/}" == "master" ]; then echo ::set-output name=branch::latest; else echo ::set-output name=branch::${GITHUB_REF#refs/*/}; fi
-      - name: Get Version
-        id: package-version
-        uses: martinbeentjes/npm-get-version-action@master
-      - name: Build & Publish to Registry
-        uses: dietah/action-docker-publish-changed@master
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - 
+        uses: actions/checkout@v4
+
+      - 
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+    
+      - 
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      -
+        name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
-          # tags: latest,${{ steps.package-version.outputs.current-version }}
+          images: |
+            ${{ vars.DOCKER_HUB_IMAGE_NAME }}
+            ghcr.io/${{ github.repository_owner }}/nut-http
+          flavor: |
+            latest=true
+          tags: |
+              type=schedule
+              type=semver,pattern={{version}}
+              type=semver,pattern={{major}}.{{minor}}
+              type=semver,pattern={{major}}
+              type=edge
+              type=ref,event=pr
+              type=sha
+      -
+        name: Build container
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6,linux/s390x
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
