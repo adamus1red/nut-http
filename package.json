@@ -28,7 +28,7 @@
   "dependencies": {
     "envalid": "^8.0.0",
     "log4js": "^6.9.1",
-    "moment": "^2.24.0",
+    "moment": "^2.30.1",
     "moment-duration-format": "^2.3.2",
     "restify": "^11.1.0",
     "stereotype": "^1.0.1"
